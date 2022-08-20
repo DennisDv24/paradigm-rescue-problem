@@ -1,0 +1,27 @@
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.7.2
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.7.2'
+
+dotenv: .env
+wallets:
+  from_key: ${PRIVATE_KEY}
+  test1: ${T1}
+  test2: ${T2}
+  test3: ${T3}
+  test4: ${T4}
+  test5: ${T5}
+  test6: ${T6}
+  test7: ${T7}
+  test8: ${T8}
+  test9: ${T9}
+
+networks:
+  kovan:
+    verify: True
+  rinkeby:
+    verify: True
+  mainnet:
+    verify: True

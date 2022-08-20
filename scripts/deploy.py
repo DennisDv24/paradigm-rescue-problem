@@ -3,13 +3,11 @@ from brownie import accounts, network, config, chain, interface
 from web3 import Web3
 import sys
 
-LOCAL_ENVS = ['development', 'ganache', 'mainnet-fork']
+LOCAL_ENVS = ['development', 'ganache', 'mainnet-fork']#, 'paradigm-test']
 
 get_acc = lambda: accounts[0] if (
     network.show_active() in LOCAL_ENVS
 ) else accounts.add(config['wallets']['from_key'])
-
-from_me = {'from': get_acc()}
 
 
 def deploy_infra():

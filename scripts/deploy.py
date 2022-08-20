@@ -17,7 +17,7 @@ def deploy_infra():
         '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
     )
     setuper = Setup.deploy(
-        weth9, {'from': get_acc(), 'value': Web3.toWei(10, 'ether')}
+        {'from': get_acc(), 'value': Web3.toWei(10, 'ether')}
     )
     chain.mine(1)
     chef = MasterChefHelper.at(setuper.mcHelper())

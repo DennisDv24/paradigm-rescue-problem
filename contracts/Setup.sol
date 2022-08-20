@@ -10,12 +10,10 @@ interface WETH9 is ERC20Like {
 
 contract Setup {
    	
-	// NOTE that it could be any other token, not only WETH9
-    WETH9 public immutable weth;
+    WETH9 public constant weth = WETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     MasterChefHelper public immutable mcHelper;
 
-    constructor(address wethAddr) payable {
-		weth = WETH9(wethAddr);	
+    constructor() payable {
         mcHelper = new MasterChefHelper();
         weth.deposit{value: 10 ether}();
         weth.transfer(address(mcHelper), 10 ether); // whoops

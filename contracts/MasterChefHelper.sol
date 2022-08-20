@@ -50,21 +50,6 @@ contract MasterChefHelper {
         _addLiquidity(tokenOut0, tokenOut1, minAmountOut);
     }
 
-    function _swap(
-		address tokenIn, address tokenOut, uint256 amountIn
-	) internal {
-        address[] memory path = new address[](2);
-        path[0] = tokenIn;
-        path[1] = tokenOut;
-        router.swapExactTokensForTokens(
-            amountIn,
-            0,
-            path,
-            address(this),
-            block.timestamp
-        );
-    }
-
     function _addLiquidity(
 		address token0, address token1, uint256 minAmountOut
 	) internal {
@@ -79,6 +64,21 @@ contract MasterChefHelper {
             block.timestamp
         );
         require(amountOut >= minAmountOut);
+    }
+
+    function _swap(
+		address tokenIn, address tokenOut, uint256 amountIn
+	) internal {
+        address[] memory path = new address[](2);
+        path[0] = tokenIn;
+        path[1] = tokenOut;
+        router.swapExactTokensForTokens(
+            amountIn,
+            0,
+            path,
+            address(this),
+            block.timestamp
+        );
     }
 
 }

